@@ -1,9 +1,14 @@
 import sqlite3
 from typing import Optional, List, Dict, Any
+import os
+
+DEFAULT_BRAIN_DIR = os.path.join(os.path.expanduser("~"), ".brain")
+DEFAULT_DB_PATH = os.path.join(DEFAULT_BRAIN_DIR, "skynet.db")
 
 
 class BrainDB:
-    def __init__(self, db_path: str = "skynet.db"):
+    def __init__(self, db_path: str = DEFAULT_DB_PATH):
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
         self.db_path = db_path
         self._init_db()
 
