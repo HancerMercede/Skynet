@@ -72,6 +72,12 @@ class BrainDB:
         pending_tasks = [dict(row) for row in cursor.fetchall()]
         
         cursor = conn.execute(
+            '''SELECT * FROM tasks WHERE project_id = ? AND status = 'done' ORDER BY updated_at DESC''',
+            (project_id,)
+        )
+        completed_tasks = [dict(row) for row in cursor.fetchall()]
+        
+        cursor = conn.execute(
             '''SELECT * FROM memory WHERE project_id = ? AND relevance > 0.6 ORDER BY relevance DESC''',
             (project_id,)
         )
@@ -101,6 +107,7 @@ class BrainDB:
             'project': dict(project) if project else None,
             'active_tasks': active_tasks,
             'pending_tasks': pending_tasks,
+            'completed_tasks': completed_tasks,
             'top_memory': top_memory,
             'open_errors': open_errors,
             'rules': rules,
