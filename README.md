@@ -26,7 +26,7 @@ pip install -e .
 ### Initialize a Project
 
 ```bash
-python -m cli.brain_init init --name "My API" --stack python,fastapi,postgres
+brain init --name "My API" --stack python,fastapi,postgres
 ```
 
 ### Start REST API
@@ -47,13 +47,13 @@ python -m server.mcp_server
 
 ```bash
 # Initialize project
-python -m cli.brain_init init --name "My Project" --stack python,fastapi
+brain init --name "My Project" --stack python,fastapi
 
 # Check status
-python -m cli.brain_init status
+brain status
 
 # Add rule
-python -m cli.brain_init rule add --category code --rule "Always use type hints"
+brain rule add --category code --rule "Always use type hints"
 ```
 
 ## REST API Endpoints
