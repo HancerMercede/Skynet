@@ -8,7 +8,7 @@ Project Brain is a portable memory layer for AI agents working on software proje
 
 ## Features
 
-- **Portability**: Single `skynet.db` file per project, versionable in git
+- **Global Installation**: Single database at `~/.brain/skynet.db` - works from any folder
 - **Universal Protocol**: Exposed as MCP server (Claude Code, Cursor, Windsurf) and REST API (LangChain, AutoGen, custom agents)
 - **Autonomous**: Agent reads and writes to DB without human intervention
 - **Session Continuity**: Agent automatically recovers previous state on startup
@@ -17,42 +17,55 @@ Project Brain is a portable memory layer for AI agents working on software proje
 ## Installation
 
 ```bash
-cd project-brain
 pip install -e .
 ```
 
 ## Quick Start
 
-### Initialize a Project
+### Start the Brain Server
 
 ```bash
-brain init --name "My API" --stack python,fastapi,postgres
+brain service install   # Show setup info
+brain service start    # Start REST API server (runs in background)
+brain service status   # Check if running
 ```
 
-### Start REST API
+The server runs at http://localhost:7842
+
+### Use with Claude Code / Cursor / Windsurf
 
 ```bash
-python -m server.rest_api
+brain mcp   # Start MCP server (for Claude Code/Cursor)
 ```
 
-API will be available at http://localhost:7842
+Or configure in `.claude/mcp.json`:
 
-### Use with MCP Server
-
-```bash
-python -m server.mcp_server
+```json
+{
+  "mcpServers": {
+    "skynet": {
+      "command": "brain",
+      "args": ["mcp"]
+    }
+  }
+}
 ```
 
 ## CLI Commands
 
 ```bash
-# Initialize project
+# Service management
+brain service start    # Start REST API server
+brain service stop     # Stop server
+brain service status   # Check if running
+brain service install  # Show setup info
+
+# MCP server (for Claude Code/Cursor)
+brain mcp
+
+# Project management (uses global ~/.brain/skynet.db)
 brain init --name "My Project" --stack python,fastapi
-
-# Check status
 brain status
-
-# Add rule
 brain rule add --category code --rule "Always use type hints"
 ```
 
