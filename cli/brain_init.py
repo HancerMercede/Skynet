@@ -3,7 +3,15 @@ import json
 import os
 import sys
 import sqlite3
+import subprocess
+import signal
 from pathlib import Path
+
+
+DEFAULT_BRAIN_DIR = os.path.join(os.path.expanduser("~"), ".brain")
+DEFAULT_DB_PATH = os.path.join(DEFAULT_BRAIN_DIR, "skynet.db")
+PID_FILE = os.path.join(DEFAULT_BRAIN_DIR, "brain.pid")
+LOG_FILE = os.path.join(DEFAULT_BRAIN_DIR, "brain.log")
 
 
 def get_schema_path() -> Path:
@@ -149,6 +157,19 @@ def main():
     parser = argparse.ArgumentParser(description='Project Brain CLI')
     subparsers = parser.add_subparsers(dest='command', help='Commands')
     
+    # Service commands
+    service_parser = subparsers.add_parser('service', help='Manage the Brain server process')
+    service_subparsers = service_parser.add_subparsers(dest='service_command')
+    
+    start_parser = service_subparsers.add_parser('start', help='Start REST API server in background')
+    stop_parser = service_subparsers.add_parser('stop', help='Stop the Brain server')
+    service_status_parser = service_subparsers.add_parser('status', help='Show whether Brain server is running')
+    install_parser = service_subparsers.add_parser('install', help='Print setup instructions')
+    
+    # MCP command
+    mcp_parser = subparsers.add_parser('mcp', help='Start MCP server (stdio transport for Claude Code/Cursor)')
+    
+    # Existing commands
     init_parser = subparsers.add_parser('init', help='Initialize Project Brain')
     init_parser.add_argument('--name', required=True, help='Project name')
     init_parser.add_argument('--stack', help='Comma-separated stack (e.g., python,fastapi,postgres)')
@@ -168,6 +189,92 @@ def main():
     add_rule_parser.add_argument('--path', help='Project path')
     
     args = parser.parse_args()
+    
+    # Service commands
+    if args.command == 'service':
+        if args.service_command == 'start':
+            os.makedirs(DEFAULT_BRAIN_DIR, exist_ok=True)
+            if os.path.exists(PID_FILE):
+                with open(PID_FILE) as f:
+                    pid = int(f.read())
+                try:
+                    os.kill(pid, 0)
+                    print(f"Brain already running (PID {pid})")
+                    return
+                except OSError:
+                    pass
+            
+            log = open(LOG_FILE, "a")
+            proc = subprocess.Popen(
+                [sys.executable, "-m", "server.rest_api"],
+                stdout=log,
+                stderr=log,
+                creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+            )
+            with open(PID_FILE, "w") as f:
+                f.write(str(proc.pid))
+            print(f"Brain started (PID {proc.pid})")
+            print(f"REST API -> http://localhost:7842")
+            print(f"Logs     -> {LOG_FILE}")
+            
+        elif args.service_command == 'stop':
+            if not os.path.exists(PID_FILE):
+                print("Brain is not running.")
+                return
+            with open(PID_FILE) as f:
+                pid = int(f.read())
+            try:
+                if os.name == "nt":
+                    subprocess.call(["taskkill", "/F", "/PID", str(pid)])
+                else:
+                    os.kill(pid, signal.SIGTERM)
+                os.remove(PID_FILE)
+                print(f"Brain stopped (PID {pid})")
+            except OSError:
+                print("Process not found - removing stale PID file.")
+                os.remove(PID_FILE)
+                
+        elif args.service_command == 'status':
+            if not os.path.exists(PID_FILE):
+                print("Brain is NOT running.")
+                return
+            with open(PID_FILE) as f:
+                pid = int(f.read())
+            try:
+                os.kill(pid, 0)
+                print(f"Brain is running (PID {pid})")
+                print(f"REST API -> http://localhost:7842")
+                print(f"MCP      -> brain mcp")
+            except OSError:
+                print("Brain is NOT running (stale PID file).")
+                os.remove(PID_FILE)
+                
+        elif args.service_command == 'install':
+            brain_dir = DEFAULT_BRAIN_DIR
+            print(f"""
+Project Brain - global installation
+-------------------------------------
+Brain directory : {brain_dir}
+Database        : {os.path.join(brain_dir, "skynet.db")}
+Logs            : {LOG_FILE}
+
+Add to your shell profile to auto-start:
+  brain service start
+
+MCP config for Claude Code (.claude/mcp.json):
+{{
+  "mcpServers": {{
+    "skynet": {{
+      "command": "brain",
+      "args": ["mcp"]
+    }}
+  }}
+}}
+            """)
+    
+    elif args.command == 'mcp':
+        from server.mcp_server import mcp as mcp_server
+        mcp_server.run()
     
     if args.command == 'init':
         init_project(args.name, args.stack, args.path, args.git_ignore)

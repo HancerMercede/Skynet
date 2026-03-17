@@ -30,7 +30,7 @@ class MemoryCreate(BaseModel):
 
 class TaskCreate(BaseModel):
     project_id: int
-    session_id: int
+    session_id: Optional[int] = None
     title: str
     description: Optional[str] = None
     priority: int = 5
@@ -43,7 +43,7 @@ class TaskUpdate(BaseModel):
 
 class ErrorCreate(BaseModel):
     project_id: int
-    session_id: int
+    session_id: Optional[int] = None
     error: str
     context: Optional[str] = None
     file_path: Optional[str] = None
@@ -55,7 +55,7 @@ class ErrorResolve(BaseModel):
 
 class DecisionCreate(BaseModel):
     project_id: int
-    session_id: int
+    session_id: Optional[int] = None
     title: str
     context: str
     chosen: str
@@ -65,7 +65,7 @@ class DecisionCreate(BaseModel):
 
 class PatternCreate(BaseModel):
     project_id: int
-    session_id: int
+    session_id: Optional[int] = None
     name: str
     description: Optional[str] = None
     code_snippet: str
