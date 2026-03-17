@@ -65,7 +65,7 @@ class DecisionCreate(BaseModel):
 
 class PatternCreate(BaseModel):
     project_id: int
-    session_id: int
+    session_id: Optional[int] = None
     name: str
     description: Optional[str] = None
     code_snippet: str
