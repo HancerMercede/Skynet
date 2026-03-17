@@ -1,0 +1,6 @@
+{
+  "db_path": "C:\\Users\\HANCER MERCEDE\\project-brain\\skynet.db",
+  "project_id": 1,
+  "mcp_server_cmd": "python -m server.mcp_server",
+  "rest_api_url": "http://localhost:7842"
+}
