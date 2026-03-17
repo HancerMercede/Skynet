@@ -241,10 +241,20 @@ def main():
             with open(PID_FILE) as f:
                 pid = int(f.read())
             try:
-                os.kill(pid, 0)
-                print(f"Brain is running (PID {pid})")
-                print(f"REST API -> http://localhost:7842")
-                print(f"MCP      -> brain mcp")
+                if os.name == "nt":
+                    result = subprocess.run(["tasklist", "/FI", f"PID eq {pid}"], capture_output=True, text=True)
+                    if str(pid) in result.stdout:
+                        print(f"Brain is running (PID {pid})")
+                        print(f"REST API -> http://localhost:7842")
+                        print(f"MCP      -> brain mcp")
+                    else:
+                        print("Brain is NOT running (stale PID file).")
+                        os.remove(PID_FILE)
+                else:
+                    os.kill(pid, 0)
+                    print(f"Brain is running (PID {pid})")
+                    print(f"REST API -> http://localhost:7842")
+                    print(f"MCP      -> brain mcp")
             except OSError:
                 print("Brain is NOT running (stale PID file).")
                 os.remove(PID_FILE)
