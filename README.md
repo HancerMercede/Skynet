@@ -71,6 +71,8 @@ brain rule add --category code --rule "Always use type hints"
 
 ## REST API Endpoints
 
+All endpoints at http://localhost:7842. Note: `session_id` is optional in all POST requests.
+
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/context/{project_id}` | GET | Get full project context |
@@ -80,7 +82,7 @@ brain rule add --category code --rule "Always use type hints"
 | `/memory/{project_id}` | GET | Recall memories |
 | `/memory/{project_id}/{key}` | DELETE | Forget memory |
 | `/tasks` | POST | Create task |
-| `/tasks/{id}` | PATCH | Update task |
+| `/tasks/{id}` | PATCH | Update task (partial: status or notes) |
 | `/tasks/{project_id}` | GET | Get tasks |
 | `/errors` | POST | Log error |
 | `/errors/{id}` | PATCH | Resolve error |
