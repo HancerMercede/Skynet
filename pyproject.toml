@@ -33,3 +33,4 @@ addopts = "-v --tb=short"
 
 [project.scripts]
 brain = "cli.brain_init:main"
+brain-init = "cli.brain_init:main"
