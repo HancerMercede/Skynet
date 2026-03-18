@@ -519,3 +519,84 @@ brain.close_session("Added user profile feature with DTOs and validation")
 - [ ] Record architectural decisions at `/decisions`
 - [ ] Save reusable patterns at `/patterns`
 - [ ] Session end: mark tasks `done` + close session with summary
+
+---
+
+## 9. Using MCP Instead of REST API
+
+If you're using Claude Code, Cursor, Windsurf, or any MCP client, you don't need to make HTTP calls. The tools are available directly.
+
+### MCP Tools Available
+
+| MCP Tool | Equivalent REST | Description |
+|----------|-----------------|-------------|
+| `brain_get_context` | `GET /context/{id}` | Get full project context |
+| `brain_start_session` | `POST /sessions` | Start new session |
+| `brain_close_session` | `PATCH /sessions/{id}` | Close session |
+| `brain_remember` | `POST /memory` | Save memory |
+| `brain_recall` | `GET /memory/{id}` | Retrieve memories |
+| `brain_forget` | `DELETE /memory/{id}/{key}` | Delete memory |
+| `brain_add_task` | `POST /tasks` | Create task |
+| `brain_update_task` | `PATCH /tasks/{id}` | Update task |
+| `brain_get_tasks` | `GET /tasks/{id}` | Get tasks |
+| `brain_log_error` | `POST /errors` | Log error |
+| `brain_resolve_error` | `PATCH /errors/{id}` | Resolve error |
+| `brain_add_decision` | `POST /decisions` | Record decision |
+| `brain_save_pattern` | `POST /patterns` | Save code pattern |
+| `brain_get_rules` | `GET /rules/{id}` | Get project rules |
+
+### Starting MCP Server
+
+```bash
+brain mcp
+```
+
+Or configure in `.claude/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "skynet": {
+      "command": "brain",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+### MCP Usage Example
+
+```python
+# The MCP client calls these functions directly
+
+# Session start
+brain_get_context(project_id=3)
+brain_start_session(project_id=3, agent_id="claude", goal="Add feature")
+
+# During work
+brain_remember(project_id=3, session_id=1, type="insight", 
+               key="config", value="Use appsettings.json", relevance=0.8)
+brain_add_task(project_id=3, session_id=1, title="Add feature", priority=8)
+brain_update_task(task_id=5, status="in_progress")
+
+# Session end
+brain_update_task(task_id=5, status="done", notes="Done!")
+brain_close_session(session_id=1, summary="Added feature")
+```
+
+### Key Differences: REST vs MCP
+
+| Aspect | REST API | MCP |
+|--------|----------|-----|
+| Protocol | HTTP | stdio |
+| Endpoint | `localhost:7842` | Direct function call |
+| Authentication | None | None |
+| Project ID | Pass in JSON | Pass as parameter |
+| Status | Must run server | Must run `brain mcp` |
+
+### When to Use What
+
+- **REST API**: LangChain, AutoGen, custom agents, any HTTP client
+- **MCP**: Claude Code, Cursor, Windsurf, agents with MCP support
+
+Both use the same database - choose based on what your agent supports.
