@@ -2,6 +2,11 @@
 
 A comprehensive guide for AI agents using Project Brain for persistent memory.
 
+> **Note:** The `project_id` values in this guide (e.g., `project_id: 3`) are **examples only**. 
+> In real usage, get your project_id dynamically from:
+> - The `.skynet-config.json` file in your project folder
+> - Or create a new project with `brain init --name "Your Project"`
+
 ---
 
 ## Quick Reference
