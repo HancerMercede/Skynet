@@ -251,6 +251,23 @@ POST /patterns
 
 ---
 
+## 2.1 When to Save — No Need to Be Asked
+
+Save to Brain automatically after these events:
+
+- Bug fixed → POST /errors (log) + PATCH /errors/{id} (resolve with solution)
+- Feature completed → PATCH /tasks/{id} (done) + POST /memory (what you learned)
+- Architecture decision made → POST /decisions immediately, do not wait
+- Problem discovered → POST /memory with type "warning" and relevance 0.9+
+- Every 10 messages → POST /memory with a progress summary
+- Reusable code written → POST /patterns
+
+DO NOT wait for the user to say "save to Brain" or "update your memory".
+DO NOT wait until the end of the session.
+Save as you go — the Brain is only useful if it has current data.
+
+---
+
 ## 3. Session End (Required)
 
 When you're done for the session:
@@ -276,6 +293,28 @@ PATCH /sessions/{session_id}
 ```
 
 This saves your work summary so future sessions know what was done.
+
+---
+
+## 3.1 After Context Reset or Compaction
+
+If your context was reset, compacted, or you lost track of 
+what was happening — do this before anything else:
+
+1. Load current project state:
+   GET http://localhost:7842/context/{project_id}
+
+2. Check last session summary:
+   The field "last_session.summary" tells you exactly 
+   what was done before. Read it completely.
+
+3. Check active tasks:
+   The field "active_tasks" shows what was in progress.
+   Continue from where it was left off.
+
+4. Do NOT ask the user to repeat context.
+   Do NOT start fresh as if nothing was done before.
+   The Brain has everything — query it first.
 
 ---
 
